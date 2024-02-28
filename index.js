@@ -1,53 +1,94 @@
+//VpllUeSVDK4aQFtt
 const express = require('express')
+const { MongoClient, ObjectId } = require('mongodb')
 
-const app = express()
-app.use(express.json())
+const dbURL = "mongodb+srv://admin:VpllUeSVDK4aQFtt@cluster0.11ustrw.mongodb.net"
+const dbName = "OceanJornadaBackendFev2024"
 
-const lista = ['Rick Sanchez', 'Morty Smith', 'Summer Smith']
+async function main() {
 
-app.get('/', function (req, res) {
+  const client = new MongoClient(dbURL)
 
-  res.send('Hello World!')
+  console.log("Conectando ao banco de dados...")
+  await client.connect()
+  console.log("Banco de dados conectado com sucesso!")
 
-})
+  const app = express()
+  app.use(express.json())
 
-app.get('/oi', function (req, res) {
+  const lista = ['Rick Sanchez', 'Morty Smith', 'Summer Smith']
 
-  res.send('Olá mundo')
+  const db =  client.db(dbName)
+  const collection = db.collection('items')
 
-})
+  app.get('/', function (req, res) {
 
-app.get('/item', function (req, res) {
+    res.send('Hello World!')
 
-  res.send(lista)
+  })
 
-})
+  app.get('/oi', function (req, res) {
 
-app.get('/item/:id', function (req, res) {
-  const id = req.params.id
+    res.send('Olá mundo')
 
-  if (id >= 3) {
-    res.send("Inválido")
-  }else {
-    res.send(lista[id])
-  }
-})
+  })
 
-app.post('/item', function (req, res) {
-  const body = req.body.nome
-  lista.push(body)
-  res.send("Item adicionado com sucesso!")
-}) 
+  app.get('/item', async function (req, res) {
+    const items = await collection.find().toArray()
 
-app.delete('/item', function (req, res) {
-  const body = req.body.nome
+    res.send(items)
+  })
 
-  if(lista.includes(body)) {
-    lista.pop(body)
-    res.send("Item removido com sucesso!")
-  }else {
-    res.send("Item não está na lista!")
-  }
-}) 
+  app.get('/item/:id', async function (req, res) {
+    // Acesso o ID no parâmetro de rota
+    const id = req.params.id
 
-app.listen(3000)
+    // Acesso o item na collection baseado no ID recebido
+    const item = await collection.findOne({
+      _id: new ObjectId(id)
+    })
+
+    // Envio o item obtido como resposta HTTP
+    res.send(item)
+  })
+
+  app.post('/item', async function (req, res) {
+    try {
+    const nome = req.body.nome
+
+    const result = await collection.insertOne({nome})
+
+    lista.push(nome)
+    res.send("Item adicionado com sucesso!")
+    }catch(error) {
+      console.log("Erro")
+      res.send("Ocorreu uma falha ao adicionar o item!")
+    }
+  })
+
+  app.put('/item/:id', async function (req, res) {
+    const id = req.params.id
+
+    // Acesso o item na collection baseado no ID recebido
+    const novoItem = req.body
+
+    collection.updateOne (
+      {_id: new ObjectId(id)},
+      {$set: novoItem}
+    )
+
+    res.send("Item atualizado com sucesso!")
+  })
+
+  app.delete('/item/:id', async function (req, res) {
+    const id = req.params.id
+
+    await collection.deleteOne( {_id: new ObjectId(id)})
+
+    res.send("Item deletado com sucesso!")
+  })
+
+  app.listen(3000)
+}
+
+main()
