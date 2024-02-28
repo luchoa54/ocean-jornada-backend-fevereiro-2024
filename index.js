@@ -16,8 +16,6 @@ async function main() {
   const app = express()
   app.use(express.json())
 
-  const lista = ['Rick Sanchez', 'Morty Smith', 'Summer Smith']
-
   const db =  client.db(dbName)
   const collection = db.collection('items')
 
@@ -40,15 +38,12 @@ async function main() {
   })
 
   app.get('/item/:id', async function (req, res) {
-    // Acesso o ID no parâmetro de rota
     const id = req.params.id
 
-    // Acesso o item na collection baseado no ID recebido
     const item = await collection.findOne({
       _id: new ObjectId(id)
     })
 
-    // Envio o item obtido como resposta HTTP
     res.send(item)
   })
 
@@ -58,7 +53,6 @@ async function main() {
 
     const result = await collection.insertOne({nome})
 
-    lista.push(nome)
     res.send("Item adicionado com sucesso!")
     }catch(error) {
       console.log("Erro")
@@ -69,7 +63,6 @@ async function main() {
   app.put('/item/:id', async function (req, res) {
     const id = req.params.id
 
-    // Acesso o item na collection baseado no ID recebido
     const novoItem = req.body
 
     collection.updateOne (
