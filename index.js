@@ -11,7 +11,7 @@ async function main() {
 
   console.log("Conectando ao banco de dados...")
   await client.connect()
-  console.log("Banco de dados conectado com sucesso!")
+  console.log("Banco de dados conectado com sucesso!!")
 
   const app = express()
   app.use(express.json())
